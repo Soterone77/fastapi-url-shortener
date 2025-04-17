@@ -1,18 +1,15 @@
 from typing import Annotated
-from annotated_types import Len
 from fastapi import (
     APIRouter,
     Depends,
     status,
-    Form,
 )
-from pydantic import AnyHttpUrl
 
 from api.api_v1.short_urls.dependencies import (
     prefetch_short_url,
 )
 from api.api_v1.short_urls.crud import SHORT_URLS
-from schemas.short_url import ShortUrl
+from schemas.short_url import ShortUrl, ShortUrlCreate
 
 router = APIRouter(
     prefix="/short-urls",
@@ -41,18 +38,7 @@ def read_short_url_details(
     status_code=status.HTTP_201_CREATED,
 )
 def create_short_url(
-    target_url: Annotated[
-        AnyHttpUrl,
-        Form(),
-    ],
-    slug: Annotated[
-        str,
-        Len(min_length=3, max_length=10),
-        Form(),
-    ],
+    short_url_create: ShortUrlCreate,
 ):
 
-    return ShortUrl(
-        target_url=target_url,
-        slug=slug,
-    )
+    return ShortUrl(**short_url_create.model_dump())
