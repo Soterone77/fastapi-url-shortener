@@ -8,7 +8,7 @@ from fastapi import (
 from api.api_v1.short_urls.dependencies import (
     prefetch_short_url,
 )
-from api.api_v1.short_urls.crud import SHORT_URLS
+from api.api_v1.short_urls.crud import storage
 from schemas.short_url import ShortUrl, ShortUrlCreate
 
 router = APIRouter(
@@ -18,8 +18,8 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[ShortUrl])
-def read_short_urls_list():
-    return SHORT_URLS
+def read_short_urls_list() -> list[ShortUrl]:
+    return storage.get()
 
 
 @router.get("/{slug}", response_model=ShortUrl)
@@ -39,6 +39,6 @@ def read_short_url_details(
 )
 def create_short_url(
     short_url_create: ShortUrlCreate,
-):
+) -> ShortUrl:
 
-    return ShortUrl(**short_url_create.model_dump())
+    return storage.create(short_url_create)
