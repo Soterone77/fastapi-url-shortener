@@ -4,7 +4,10 @@ from fastapi import Depends, APIRouter
 from starlette.responses import RedirectResponse
 
 from api.api_v1.short_urls.dependencies import prefetch_short_url
-from schemas.short_url import ShortUrl
+from schemas.short_url import (
+    ShortUrl,
+    ShortUrlRead,
+)
 
 router = APIRouter(
     prefix="/r",
@@ -16,7 +19,7 @@ router = APIRouter(
 @router.get("/{slug}/")
 def redirect_short_url(
     url: Annotated[
-        ShortUrl,
+        ShortUrlRead,
         Depends(prefetch_short_url),
     ],
 ):
