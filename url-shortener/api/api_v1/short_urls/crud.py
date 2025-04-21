@@ -23,9 +23,25 @@ class ShortUrlsStorage(BaseModel):
     @classmethod
     def from_state(cls) -> "ShortUrlsStorage":
         if not SHORTS_URLS_STORAGE_FILEPATH.exists():
-            log.warning("Shorts urls storage doesn't exist.")
+            log.info("Shorts urls storage doesn't exist.")
             return ShortUrlsStorage()
         return cls.model_validate_json(SHORTS_URLS_STORAGE_FILEPATH.read_text())
+
+    def init_storage_from_state(self) -> None:
+        try:
+            data = ShortUrlsStorage.from_state()
+        except ValidationError:
+            self.save_state()
+            log.warning("Rewritten storage file due to validation error")
+            return
+        # мы обновляем свойство напрямую,
+        # если будут новые свойства,
+        # то мы тоже хотим их обновить.
+
+        self.slug_to_short_url.update(
+            data.slug_to_short_url,
+        )
+        log.warning("Recovered data from storage file")
 
     def get(self) -> list[ShortUrl]:
         return list(self.slug_to_short_url.values())
@@ -73,14 +89,7 @@ class ShortUrlsStorage(BaseModel):
         return short_url
 
 
-try:
-    storage = ShortUrlsStorage.from_state()
-    log.warning("Recovered data from storage file")
-
-except ValidationError:
-    storage = ShortUrlsStorage()
-    storage.save_state()
-    log.warning("Rewritten storage file due to validation error")
+storage = ShortUrlsStorage()
 
 
 # storage.create(

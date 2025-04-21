@@ -7,6 +7,7 @@ from fastapi import (
 
 from api import router as api_router
 from api.redirect_views import router as redirect_views_router
+from app_lifespan import lifespan
 from core import config
 
 logging.basicConfig(
@@ -17,6 +18,7 @@ logging.basicConfig(
 app = FastAPI(
     title="URL Shortener",
     description="Opisanie",
+    lifespan=lifespan,
 )
 app.include_router(api_router)
 app.include_router(redirect_views_router)
