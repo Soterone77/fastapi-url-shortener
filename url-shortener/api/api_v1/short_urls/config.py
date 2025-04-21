@@ -1,6 +1,6 @@
 from pydantic import BaseModel, AnyHttpUrl, ValidationError
 
-from core.core import SHORTS_URLS_STORAGE_FILEPATH
+from core.config import SHORTS_URLS_STORAGE_FILEPATH
 from schemas.short_url import (
     ShortUrl,
     ShortUrlCreate,
