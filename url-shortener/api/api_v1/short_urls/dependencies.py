@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from starlette import status
 
-from api.api_v1.short_urls.crud import storage
+from api.api_v1.short_urls.config import storage
 from schemas.short_url import ShortUrl
 
 
