@@ -4,13 +4,22 @@ from fastapi import (
     HTTPException,
     BackgroundTasks,
     status,
+    Request,
 )
-
 
 from api.api_v1.short_urls.crud import storage
 from schemas.short_url import ShortUrl
 
 log = logging.getLogger(__name__)
+
+UNSAFE_METHODS = frozenset(
+    {
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+    }
+)
 
 
 def prefetch_short_url(slug: str) -> ShortUrl:
@@ -23,9 +32,13 @@ def prefetch_short_url(slug: str) -> ShortUrl:
     )
 
 
-def save_storage_state(background_tasks: BackgroundTasks):
+def save_storage_state(
+    request: Request,
+    background_tasks: BackgroundTasks,
+):
     # исполнение кода до входа внутрь view функции
     yield
     # исполнение кода после покидания view функции
-    log.info("Add background task to  save storage")
-    background_tasks.add_task(storage.save_state)
+    if request.method in UNSAFE_METHODS:
+        log.info("Add background task to  save storage")
+        background_tasks.add_task(storage.save_state)
