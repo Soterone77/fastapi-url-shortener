@@ -8,7 +8,10 @@ from fastapi import (
 )
 
 from api.api_v1.short_urls.crud import storage
-from api.api_v1.short_urls.dependencies import prefetch_short_url, save_storage_state
+from api.api_v1.short_urls.dependencies import (
+    prefetch_short_url,
+    save_storage_state,
+)
 from schemas.short_url import (
     ShortUrl,
     ShortUrlCreate,
