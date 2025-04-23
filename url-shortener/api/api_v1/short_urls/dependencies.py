@@ -67,6 +67,16 @@ def save_storage_state(
         background_tasks.add_task(storage.save_state)
 
 
+def validate_api_token(
+    api_token: HTTPAuthorizationCredentials,
+):
+    if api_token.credentials not in API_TOKENS:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API token",
+        )
+
+
 def api_token_required_for_unsafe_methods(
     request: Request,
     api_token: Annotated[
@@ -75,6 +85,7 @@ def api_token_required_for_unsafe_methods(
     ] = None,
 ):
     log.info("API token: %s ", api_token)
+
     if request.method not in UNSAFE_METHODS:
         return
 
@@ -83,11 +94,25 @@ def api_token_required_for_unsafe_methods(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API token is required",
         )
-    if api_token.credentials not in API_TOKENS:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid API token",
-        )
+
+    validate_api_token(api_token=api_token)
+
+
+def validate_basic_auth(
+    credentials: HTTPBasicCredentials | None,
+):
+    if (
+        credentials
+        and credentials.username in USER_DB
+        and credentials.password == USER_DB[credentials.username]
+    ):
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid username or password.",
+        headers={"WWW-Authenticate": "Basic"},
+    )
 
 
 def user_basic_auth_required_for_unsafe_methods(
@@ -101,16 +126,32 @@ def user_basic_auth_required_for_unsafe_methods(
     if request.method not in UNSAFE_METHODS:
         return
 
-    log.info("User auth credentials %s ", credentials)
-    if (
-        credentials
-        and credentials.username in USER_DB
-        and credentials.password == USER_DB[credentials.username]
-    ):
+    validate_basic_auth(
+        credentials=credentials,
+    )
+
+
+def api_token_or_user_basic_auth_required_for_unsafe_methods(
+    request: Request,
+    api_token: Annotated[
+        HTTPAuthorizationCredentials | None,
+        Depends(static_api_token),
+    ] = None,
+    credentials: Annotated[
+        HTTPBasicCredentials | None,
+        Depends(user_basic_auth),
+    ] = None,
+):
+    if request.method not in UNSAFE_METHODS:
         return
+
+    if credentials:
+        return validate_basic_auth(credentials=credentials)
+
+    if api_token:
+        return validate_api_token(api_token=api_token)
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid username or password. Credentials are required.",
-        headers={"WWW-Authenticate": "Basic"},
+        detail="API token or basic auth is required",
     )
