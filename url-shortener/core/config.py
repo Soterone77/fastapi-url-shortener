@@ -26,3 +26,5 @@ USER_DB: dict[str, str] = {
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 REDIS_DB = 0
+REDIS_DB_TOKENS = 1
+REDIS_TOKENS_SET_NAME = "tokens"
